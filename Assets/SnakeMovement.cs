@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class SnakeMovement : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveSpeed = 1.5f;
+    public float moveSpeed = 2.5f;
     public float turnSpeed = 160f;
 
     [Header("Dash (NEW ACTION)")]
