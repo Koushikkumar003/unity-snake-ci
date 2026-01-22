@@ -30,9 +30,10 @@ jobs:
         with:
           unityVersion: 6000.3.4f1
           targetPlatform: StandaloneWindows64
+          license: Personal
         env:
-                UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-                UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
