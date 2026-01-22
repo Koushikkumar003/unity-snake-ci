@@ -6,13 +6,22 @@ public class SnakeMovement : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 1.5f;
-    public float turnSpeed = 50f;
+    public float turnSpeed = 160f;
+
+    [Header("Dash (NEW ACTION)")]
+    public float dashSpeed = 5f;        // burst speed
+    public float dashDuration = 0.15f;  // short & controlled
+    public float dashCooldown = 1.5f;   // no spamming
 
     [Header("Body")]
     public GameObject bodyPrefab;
 
     private Rigidbody rb;
     private bool canMove = true;
+
+    private bool isDashing = false;
+    private float dashTimer = 0f;
+    private float cooldownTimer = 0f;
 
     private List<Transform> bodyParts = new List<Transform>();
     private List<Vector3> positionHistory = new List<Vector3>();
@@ -33,16 +42,22 @@ public class SnakeMovement : MonoBehaviour
     {
         if (!canMove) return;
 
+        HandleDashTimers();
+
         // Forward movement
-        Vector3 move = transform.forward * moveSpeed * Time.fixedDeltaTime;
+        float currentSpeed = isDashing ? dashSpeed : moveSpeed;
+        Vector3 move = transform.forward * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(rb.position + move);
 
-        // Rotation
-        float turn = Input.GetAxis("Horizontal");
-        Quaternion rot = Quaternion.Euler(0f, turn * turnSpeed * Time.fixedDeltaTime, 0f);
-        rb.MoveRotation(rb.rotation * rot);
+        // 🔥 Sharp turning
+        float turn = Input.GetAxisRaw("Horizontal");
+        if (turn != 0)
+        {
+            Quaternion rot = Quaternion.Euler(0f, turn * turnSpeed * Time.fixedDeltaTime, 0f);
+            rb.MoveRotation(rb.rotation * rot);
+        }
 
-        // Save position history
+        // Save head position
         positionHistory.Insert(0, transform.position);
         if (positionHistory.Count > 500)
             positionHistory.RemoveAt(positionHistory.Count - 1);
@@ -55,7 +70,36 @@ public class SnakeMovement : MonoBehaviour
         }
     }
 
-    // 🔴 STOP MOVEMENT WHEN WALL IS HIT
+    void Update()
+    {
+        // 🚀 DASH INPUT (NEW)
+        if (Input.GetKeyDown(KeyCode.Space) && cooldownTimer <= 0f)
+        {
+            StartDash();
+        }
+    }
+
+    void StartDash()
+    {
+        isDashing = true;
+        dashTimer = dashDuration;
+        cooldownTimer = dashCooldown;
+    }
+
+    void HandleDashTimers()
+    {
+        if (isDashing)
+        {
+            dashTimer -= Time.fixedDeltaTime;
+            if (dashTimer <= 0f)
+                isDashing = false;
+        }
+
+        if (cooldownTimer > 0f)
+            cooldownTimer -= Time.fixedDeltaTime;
+    }
+
+    // 🧱 Stop on wall hit
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Wall"))
